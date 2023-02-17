@@ -1,0 +1,17 @@
+quarkus:
+  datasource:
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    jdbc:
+      url: ${DB_URL}
+    db-kind: postgresql
+  http:
+    port: 8081
+  flyway:
+    migrate-at-start: true
+    out-of-order: true
+  smallrye-openapi:
+    path: /api/author/openapi
+  swagger-ui:
+    path: /api/author/openapi-ui
+    always-include: true

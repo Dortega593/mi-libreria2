@@ -1,0 +1,64 @@
+version: '3'
+
+services:
+  app-books:
+    image: jaimesalvador/app-book:1.0.1
+    deploy:
+      replicas: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app-book.rule=PathPrefix(`/books`)"
+      - "traefik.http.routers.app-book.entrypoints=web"
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_DRIVER=org.postgresql.ds.PGSimpleDataSource
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+    expose:
+      - 7070
+
+  app-authors:
+    image: jaimesalvador/app-author:1.0.1
+    deploy:
+      replicas: 2
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.app-author.rule=PathPrefix(`/authors`)"
+      - "traefik.http.routers.app-author.entrypoints=web"
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/postgres
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres
+    expose:
+      - 7071
+
+  app-web:
+    image: jaimesalvador/app-web:1.0.1
+    depends_on:
+      - traefik
+    ports:
+      - ":8888:8084"
+
+  postgres:
+    image: postgres:alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+
+  traefik:
+    image: "traefik:v2.9"
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "9090:80"
+      - "7099:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
